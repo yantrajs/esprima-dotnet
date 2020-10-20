@@ -7,5 +7,7 @@ namespace Esprima.Ast
         }
 
         public Identifier? LabelSet { get; internal set; }
+
+        public HoistingScope? HoistingScope;
     }
 }
