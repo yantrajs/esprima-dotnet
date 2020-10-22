@@ -8,6 +8,6 @@ namespace Esprima.Ast
 
         public Identifier? LabelSet { get; internal set; }
 
-        public HoistingScope? HoistingScope;
+        public System.Collections.Generic.List<string>? HoistingScope;
     }
 }
