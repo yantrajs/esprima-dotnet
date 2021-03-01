@@ -16,6 +16,7 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/sebastienros/esprima-dotnet/master/LICENSE.txt</PackageLicenseUrl>
     <Version>2.0.0-beta-$(BuildNumber)</Version>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- SourceLink support -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

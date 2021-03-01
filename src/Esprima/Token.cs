@@ -36,11 +36,24 @@ namespace Esprima
         // For templates
         public bool Head;
         public bool Tail;
-        public string? RawTemplate;
+        public Span? RawTemplate;
 
         public bool BooleanValue;
         public double NumericValue;
         public object? Value;
+        public string? StringValue => Value == null ? null : (Value is Span span ? span.Value : null);
+
+        public Span SpanValue
+        {
+            get
+            {
+                return Value != null ? (Value is Span span ? span : Span.Empty) : Span.Empty;
+            }
+            set {
+                Value = value;
+            }
+        }
+
         public RegexValue? RegexValue;
 
         public void Clear()

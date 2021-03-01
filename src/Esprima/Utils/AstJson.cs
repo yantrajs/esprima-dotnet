@@ -217,6 +217,11 @@ namespace Esprima.Utils
                 Member(name);
                 _writer.String(value);
             }
+            private void Member(string name, Span? value)
+            {
+                Member(name);
+                _writer.String(value!.Value.Value);
+            }
 
             private void Member(string name, bool value)
             {

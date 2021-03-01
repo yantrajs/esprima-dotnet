@@ -11,7 +11,7 @@ namespace Esprima
     public class Comment
     {
         public CommentType Type;
-        public string? Value;
+        public Span? Value;
 
         public bool MultiLine;
         public int[] Slice = Array.Empty<int>();

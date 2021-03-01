@@ -11,35 +11,35 @@ namespace Esprima.Ast
 
         public readonly RegexValue? Regex;
         public readonly object? Value;
-        public readonly string Raw;
+        public readonly Span Raw;
         public readonly TokenType TokenType;
 
-        internal Literal(TokenType tokenType, object? value, string raw) : base(Nodes.Literal)
+        internal Literal(TokenType tokenType, object? value, Span raw) : base(Nodes.Literal)
         {
             TokenType = tokenType;
             Value = value;
             Raw = raw;
         }
 
-        public Literal(string? value, string raw) : this(TokenType.StringLiteral, value, raw)
+        public Literal(string? value, Span raw) : this(TokenType.StringLiteral, value, raw)
         {
         }
 
-        public Literal(bool value, string raw) : this(TokenType.BooleanLiteral, value, raw)
+        public Literal(bool value, Span raw) : this(TokenType.BooleanLiteral, value, raw)
         {
             NumericValue = value ? 1 : 0;
         }
 
-        public Literal(double value, string raw) : this(TokenType.NumericLiteral, value, raw)
+        public Literal(double value, Span raw) : this(TokenType.NumericLiteral, value, raw)
         {
             NumericValue = value;
         }
 
-        public Literal(string raw) : this(TokenType.NullLiteral, null, raw)
+        public Literal(Span raw) : this(TokenType.NullLiteral, null, raw)
         {
         }
 
-        public Literal(string pattern, string flags, object? value, string raw) : this(TokenType.RegularExpression, value, raw)
+        public Literal(string pattern, string flags, object? value, Span raw) : this(TokenType.RegularExpression, value, raw)
         {
             // value is null if a Regex object couldn't be created out of the pattern or options
             Regex = new RegexValue(pattern, flags);

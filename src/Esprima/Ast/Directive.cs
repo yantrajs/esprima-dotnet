@@ -2,9 +2,9 @@
 {
     public sealed class Directive : ExpressionStatement
     {
-        public readonly string Directiv;
+        public readonly Span Directiv;
 
-        public Directive(Expression expression, string directive) : base(expression)
+        public Directive(Expression expression, Span directive) : base(expression)
         {
             Directiv = directive;
         }

@@ -16,7 +16,7 @@ namespace Esprima
             }
         }
 
-        public static string Slice(this string source, int start, int end)
+        public static Span Slice(this Span source, int start, int end)
         {
             var len = source.Length;
             var from = start < 0 ? Math.Max(len + start, 0) : Math.Min(start, len);
@@ -539,7 +539,7 @@ namespace Esprima
                 }
             }
 
-            var substring = source.Substring(from, span);
+            var substring = source.Span(from, span);
             return substring;
         }
 

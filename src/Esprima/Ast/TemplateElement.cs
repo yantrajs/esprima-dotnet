@@ -14,7 +14,7 @@
         public sealed class TemplateElementValue
         {
             public string Cooked = "";
-            public string Raw = "";
+            public Span Raw = Span.Empty;
         }
 
         public override NodeCollection ChildNodes => NodeCollection.Empty;

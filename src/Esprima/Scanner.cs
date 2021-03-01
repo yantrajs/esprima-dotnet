@@ -55,7 +55,7 @@ namespace Esprima
         private readonly bool _adaptRegexp;
         private readonly int _length;
 
-        public readonly string Source;
+        public readonly Span Source;
         public int Index;
         public int LineNumber;
         public int LineStart;
@@ -65,7 +65,7 @@ namespace Esprima
         private Stack<string> _curlyStack;
         private readonly StringBuilder strb = new StringBuilder();
 
-        private static readonly HashSet<string> Keywords = new HashSet<string>
+        private static readonly HashSet<Span> Keywords = new HashSet<Span>
         {
             "if", "in", "do", "var", "for", "new", "try", "let",
             "this", "else", "case", "void", "with", "enum",
@@ -75,7 +75,7 @@ namespace Esprima
             "function", "continue", "debugger", "instanceof"
         };
 
-        private static readonly HashSet<string> StrictModeReservedWords = new HashSet<string>
+        private static readonly HashSet<Span> StrictModeReservedWords = new HashSet<Span>
         {
             "implements",
             "interface",
@@ -88,7 +88,7 @@ namespace Esprima
             "let"
         };
 
-        private static readonly HashSet<string> FutureReservedWords = new HashSet<string>
+        private static readonly HashSet<Span> FutureReservedWords = new HashSet<Span>
         {
             "enum",
             "export",
@@ -96,7 +96,7 @@ namespace Esprima
             "super"
         };
 
-        private static readonly string[] threeCharacterPunctutors =
+        private static readonly Span[] threeCharacterPunctutors =
         {
             "===",
             "!==",
@@ -106,7 +106,7 @@ namespace Esprima
             "**="
         };
 
-        private static readonly string[] twoCharacterPunctuators =
+        private static readonly Span[] twoCharacterPunctuators =
         {
             "&&" ,
             "||" ,
@@ -227,9 +227,21 @@ namespace Esprima
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsFutureReservedWord(Span? id)
+        {
+            return id != null && FutureReservedWords.Contains(id.Value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsStrictModeReservedWord(string? id)
         {
             return id != null && StrictModeReservedWords.Contains(id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsStrictModeReservedWord(Span? id)
+        {
+            return id != null && StrictModeReservedWords.Contains(id.Value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -237,11 +249,21 @@ namespace Esprima
         {
             return "eval".Equals(id) || "arguments".Equals(id);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsRestrictedWord(Span? id)
+        {
+            return id.HasValue && ( id.Value.Equals("eval") || id.Value.Equals("arguments"));
+        }
 
         // https://tc39.github.io/ecma262/#sec-keywords
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsKeyword(string id)
+        {
+            return Keywords.Contains(id);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsKeyword(in Span id)
         {
             return Keywords.Contains(id);
         }
@@ -496,7 +518,8 @@ namespace Esprima
             //    }
             //}
 
-            return Char.ConvertToUtf32(Source, i);
+            // return Char.ConvertToUtf32(Source, i);
+            return Source.ConvertToUtf32(i);
         }
 
         public bool ScanHexEscape(char prefix, out char result)
@@ -560,7 +583,7 @@ namespace Esprima
             return Character.FromCodePoint(code);
         }
 
-        public string GetIdentifier()
+        public Span GetIdentifier()
         {
             var start = Index++;
             while (!Eof())
@@ -741,17 +764,23 @@ namespace Esprima
 
         public Token ScanPunctuator()
         {
-            static string SafeSubstring(string s, int startIndex, int length)
+            //static string SafeSubstring(string s, int startIndex, int length)
+            //{
+            //    return startIndex + length > s.Length ? string.Empty : s.Substring(startIndex, length);
+            //}
+
+            static Span SafeSubstring(Span s, int startIndex, int length)
             {
-                return startIndex + length > s.Length ? string.Empty : s.Substring(startIndex, length);
+                return startIndex + length > s.Length ? Span.Empty : s.Span(startIndex, length);
             }
+
 
             var start = Index;
 
             // Check for most common single-character punctuators.
             // TODO spanify
             var c = Source[Index];
-            var str = c.ToString();
+            Span str = c.ToString();
 
             switch (c)
             {
@@ -822,7 +851,7 @@ namespace Esprima
                             {
                                 // 1-character punctuators.
                                 str = Source[Index].ToString();
-                                if ("<>=!+-*%&|^/".IndexOf(str, StringComparison.Ordinal) >= 0)
+                                if ("<>=!+-*%&|^/".IndexOf(str.Value, StringComparison.Ordinal) >= 0)
                                 {
                                     ++Index;
                                 }
@@ -865,7 +894,7 @@ namespace Esprima
                 Index++;
             }
 
-            var number = Source.Substring(index, Index - index);
+            var number = Source.Span(index, Index - index);
 
             if (number.Length == 0)
             {
@@ -881,7 +910,8 @@ namespace Esprima
 
             if (number.Length < 16)
             {
-                value = Convert.ToInt64(number, 16);
+                // value = Convert.ToInt64(number, 16);
+                value = number.ToInt64(16);
             }
             else if (number.Length > 255)
             {
@@ -937,7 +967,7 @@ namespace Esprima
                 Index++;
             }
 
-            var number = Source.Substring(index, Index - index);
+            var number = Source.Span(index, Index - index);
 
             if (number.Length == 0)
             {
@@ -958,7 +988,7 @@ namespace Esprima
             return new Token
             {
                 Type = TokenType.NumericLiteral,
-                NumericValue = Convert.ToUInt32(number, 2),
+                NumericValue = number.ToUInt32(2),
                 Value = number,
                 LineNumber = LineNumber,
                 LineStart = LineStart,
@@ -992,7 +1022,7 @@ namespace Esprima
                 sb.Append(Source[Index++]);
             }
 
-            var number = sb.ToString();
+            Span number = sb.ToString();
 
             if (!octal && number.Length == 0)
             {
@@ -1008,7 +1038,8 @@ namespace Esprima
             ulong numericValue;
             try
             {
-                numericValue = Convert.ToUInt64(number, 8);
+                // numericValue = Convert.ToUInt64(number, 8);
+                numericValue = number.ToUInt64(8);
             }
             catch (OverflowException)
             {
@@ -1303,7 +1334,7 @@ namespace Esprima
             return new Token
             {
                 Type = TokenType.StringLiteral,
-                Value = str.ToString(),
+                SpanValue = str.ToString(),
                 Octal = octal,
                 LineNumber = LineNumber,
                 LineStart = LineStart,
@@ -1462,7 +1493,7 @@ namespace Esprima
             return new Token
             {
                 Type = TokenType.Template,
-                Value = cooked.ToString(),
+                SpanValue = cooked.ToString(),
                 RawTemplate = Source.Slice(start + 1, Index - rawOffset),
                 Head = head,
                 Tail = tail,
@@ -1626,7 +1657,7 @@ namespace Esprima
             var body = str.ToString();
             return new Token
             {
-                Value = body.Substring(1, body.Length - 2),
+                Value = body.Span(1, body.Length - 2),
                 Literal = body
             };
         }
@@ -1682,7 +1713,7 @@ namespace Esprima
 
             return new Token
             {
-                Value = flags,
+                SpanValue = flags,
                 Literal = str
             };
         }
@@ -1693,15 +1724,15 @@ namespace Esprima
 
             var body = ScanRegExpBody();
             var flags = ScanRegExpFlags();
-            var flagsValue = (string) flags.Value!;
-            var value = TestRegExp((string) body.Value!, flagsValue);
+            var flagsValue = flags.StringValue!;
+            var value = TestRegExp(body.StringValue!, flagsValue);
 
             return new Token
             {
                 Type = TokenType.RegularExpression,
                 Value = value,
                 Literal = body.Literal + flags.Literal,
-                RegexValue = new RegexValue((string) body.Value!, flagsValue),
+                RegexValue = new RegexValue(body.StringValue!, flagsValue),
                 LineNumber = LineNumber,
                 LineStart = LineStart,
                 Start = start,
@@ -1768,7 +1799,7 @@ namespace Esprima
             // Possible identifier start in a surrogate pair.
             if (cp >= 0xD800 && cp < 0xDFFF)
             {
-                if (Char.IsLetter(Source, Index)) // Character.IsIdentifierStart(CodePointAt(Index))
+                if (Source.IsLetter(Index)) // Character.IsIdentifierStart(CodePointAt(Index))
                 {
                     return ScanIdentifier();
                 }
@@ -1873,7 +1904,7 @@ namespace Esprima
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string? FindTwoCharEqual(string input, string[] alternatives)
+        private static Span? FindTwoCharEqual(Span input, Span[] alternatives)
         {
             var c2 = input[1];
             var c1 = input[0];
@@ -1891,7 +1922,7 @@ namespace Esprima
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string? FindThreeCharEqual(string input, string[] alternatives)
+        private static Span? FindThreeCharEqual(Span input, Span[] alternatives)
         {
             var c3 = input[2];
             var c2 = input[1];

@@ -2,9 +2,9 @@ namespace Esprima.Ast
 {
     public sealed class Identifier : Expression
     {
-        public readonly string? Name;
+        public readonly Span? Name;
 
-        public Identifier(string? name) : base(Nodes.Identifier)
+        public Identifier(Span? name) : base(Nodes.Identifier)
         {
             Name = name;
         }
