@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YantraJS.Core;
 
 namespace Esprima.Ast
 {
     public class HoistingScope
     {
 
-        public List<VariableDeclaration> VariableDeclarations { get; } 
-            = new List<VariableDeclaration>();
+        public SparseList<VariableDeclaration> VariableDeclarations { get; } 
+            = new SparseList<VariableDeclaration>();
 
-        public List<ClassDeclaration> ClassDeclarations { get; }
-            = new List<ClassDeclaration>();
+        public SparseList<ClassDeclaration> ClassDeclarations { get; }
+            = new SparseList<ClassDeclaration>();
 
-        public List<FunctionDeclaration> FunctionDeclarations { get; }
-            = new List<FunctionDeclaration>();
+        public SparseList<FunctionDeclaration> FunctionDeclarations { get; }
+            = new SparseList<FunctionDeclaration>();
 
     }
 }
